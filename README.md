@@ -17,7 +17,44 @@ composer require gaiththewolf/git-manager
 ## Usage
 
 ```php
-// Usage description here
+
+namespace App\Http\Controllers;
+
+class UpdaterController extends Controller
+{
+
+    public function __construct()
+    {
+        // for windows users you need to set windows mode
+        GitManager::windowsMode();
+        // set .git directory
+        GitManager::setWorkingDirectory(base_path());
+    }
+
+    public function index()
+    {
+        $version = GitManager::version(); // get string of installed git version
+        $version = trim(str_replace("git version", "",$version));
+
+        $lastUpdate = trim(GitManager::lastUpdate()); // get string of last update datetime
+
+        $status = GitManager::status(); // get array git status
+
+        $logs = GitManager::log(); // get array Last 10 logs
+
+        return view('update.index', compact('version', 'lastUpdate', 'status', 'logs'));
+    }
+
+    public function pull()
+    {
+        $output = GitManager::pull(); // pull changes if exist
+        if ($output["is_up_to_date"]) {
+            return redirect()->route('update.index');
+        }
+        return redirect()->route('update.index')->with("pullData", $output);
+    }
+
+}
 ```
 
 ### Testing

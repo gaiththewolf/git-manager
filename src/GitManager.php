@@ -22,14 +22,14 @@ class GitManager
      * @param string $wd working directory - base_path()
      * @param ?string $ch composer home - base_path('vendor/bin/composer')
      */
-    public function __construct(string $wd, ?string $ch = null)
+    public function __construct(?string $wd = null, ?string $ch = null)
     {
         if (file_exists('/usr/bin/git')) {
             self::$bin = '/usr/bin/git';
         } else {
             self::$bin = 'git';
         }
-        self::$workingDirectory = $wd;
+        self::$workingDirectory = $wd ?? base_path();
         self::$composerHome = $ch;
     }
 
@@ -57,6 +57,24 @@ class GitManager
     public static function windowsMode()
     {
         self::setBin('git');
+    }
+
+    /**
+     * Set working path
+     *
+     * @param string $path to .git directory
+     */
+    public static function setWorkingDirectory($path)
+    {
+        self::$workingDirectory = $path;
+    }
+
+    /**
+     * Gets working path
+     */
+    public static function getWorkingDirectory()
+    {
+        return self::$workingDirectory;
     }
 
     /**
