@@ -5,4 +5,5 @@
  */
 return [
 
+    'ssh-password' => env('GIT_SSH_PASSWORD', ''), // not needed
 ];
