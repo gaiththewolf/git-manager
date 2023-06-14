@@ -4,8 +4,12 @@ namespace Gaiththewolf\GitManager;
 
 use Symfony\Component\Process\Process;
 use Exception;
+use Gaiththewolf\GitManager\Data\GitLog;
+use Gaiththewolf\GitManager\Data\GitPull;
 use Gaiththewolf\GitManager\Exceptions\ComposerRunException;
 use Gaiththewolf\GitManager\Exceptions\GitPasswordException;
+use Gaiththewolf\GitManager\Data\GitStatus;
+use Illuminate\Support\Collection;
 
 class GitManager
 {
@@ -77,6 +81,23 @@ class GitManager
         return self::$workingDirectory;
     }
 
+    /**
+     * Set working path
+     *
+     * @param string $path to .git directory
+     */
+    public static function setComposerHome($path)
+    {
+        self::$composerHome = $path;
+    }
+
+    /**
+     * Gets working path
+     */
+    public static function getComposerHome()
+    {
+        return self::$composerHome;
+    }
     /**
      * run any command cmd - git or composer or artisan ...
      * @param array $args
@@ -152,17 +173,16 @@ class GitManager
         return self::cmd(null, 'log', '-1', '--date=format:%Y/%m/%d %T', '--format=%ad');
     }
 
-    public static function parseStatus($output) : array
+    public static function parseStatus($output) : GitStatus
     {
-        $parsedData = [];
         // Extract the branch name
         preg_match('/On branch (\S+)/', $output, $branchMatches);
-        $parsedData['branch'] = $branchMatches[1];
-        // Check if the branch is up to date
-        $parsedData['is_up_to_date'] = (strpos(strtolower($output), "branch is up to date") !== false);
-        $parsedData['is_push'] = (strpos(strtolower($output), "publish your local commits") !== false);
-        $parsedData['is_pull'] = (strpos(strtolower($output), "update your local branch") !== false);
-        return $parsedData;
+        return new GitStatus(
+            $branchMatches[1],
+            (strpos(strtolower($output), "branch is up to date") !== false),
+            (strpos(strtolower($output), "publish your local commits") !== false),
+            (strpos(strtolower($output), "update your local branch") !== false)
+        );
     }
 
     public static function status( ? string $password = null)
@@ -171,34 +191,39 @@ class GitManager
         return self::parseStatus(self::cmd(null, 'status'));
     }
 
-    public static function parseLog($log)
+    public static function parseLog($log) : Collection
     {
         $lines = explode("\n", $log);
-        $history = array();
+        $collection = collect();
+        $gitLog = new GitLog();
         foreach ($lines as $key => $line) {
             if (strpos($line, 'commit') === 0 || $key + 1 == count($lines)) {
-                if (!empty($commit)) {
-                    $commit['message'] = substr($commit['message'], 4);
-                    array_push($history, $commit);
-                    unset($commit);
+                if (!$gitLog->isEmpty()) {
+                    $gitLog->setMessage(substr($gitLog->message, 4));
+                    $collection->add($gitLog);
+                    $gitLog = new GitLog();
                 }
-                $commit['hash'] = substr($line, strlen('commit') + 1);
+                $gitLog->setHash(substr($line, strlen('commit') + 1));
             } else if (strpos($line, 'Author') === 0) {
-                $commit['author'] = substr($line, strlen('Author:') + 1);
+                $pattern = '/^(.+)\s+<(.+)>$/';
+                preg_match($pattern, substr($line, strlen('Author:') + 1), $matches);
+                $fullName = $matches[1];
+                $email = $matches[2];
+                $gitLog->setAuthor(['full_name' => $fullName, 'email' => $email]);
             } else if (strpos($line, 'Date') === 0) {
-                $commit['date'] = substr($line, strlen('Date:') + 3);
+                $gitLog->setDate(substr($line, strlen('Date:') + 3));
             } elseif (strpos($line, 'Merge') === 0) {
-                $commit['merge'] = substr($line, strlen('Merge:') + 1);
-                $commit['merge'] = explode(' ', $commit['merge']);
+                $merge = substr($line, strlen('Merge:') + 1);
+                $gitLog->setMerge(explode(' ', $merge));
             } else {
-                if (isset($commit['message'])) {
-                    $commit['message'] .= $line;
+                if (!empty($gitLog->message)) {
+                    $gitLog->appendMessage($line) ;
                 } else {
-                    $commit['message'] = $line;
+                    $gitLog->setMessage($line) ;
                 }
             }
         }
-        return $history;
+        return $collection;
     }
 
     public static function log(int $logNum = 10)
@@ -206,29 +231,23 @@ class GitManager
         return self::parseLog(self::cmd(null, 'log', "-$logNum"));
     }
 
-    public static function pull( ? string $password = null)
+    public static function pull( ? string $password = null) : GitPull
     {
         $output = self::cmd($password, 'pull');
-        $pullOut = [];
-
-        $pullOut['is_up_to_date'] = (strpos(strtolower($output), "already up to date") !== false);
-
         $filesPattern = '/\n(.*?)\s+\|/';
         preg_match_all($filesPattern, $output, $filesMatches);
-        $pullOut["files"] = isset($filesMatches[1]) ? $filesMatches[1] : [];
-
         $changeCountPattern = '/(\d+)\s+file(s)?\s+changed/';
         preg_match($changeCountPattern, $output, $changeCountMatches);
-        $pullOut["changed"] = isset($changeCountMatches[1]) ? (int) $changeCountMatches[1] : 0;
-
         $insertionCountPattern = '/(\d+)\s+insertion(s)?\(\+\)/';
         preg_match($insertionCountPattern, $output, $insertionCountMatches);
-        $pullOut["insertion"] = isset($insertionCountMatches[1]) ? (int) $insertionCountMatches[1] : 0;
-
         $deletionCountPattern = '/(\d+)\s+deletion(s)?\(-\)/';
         preg_match($deletionCountPattern, $output, $deletionCountMatches);
-        $pullOut["deletion"] = isset($deletionCountMatches[1]) ? (int) $deletionCountMatches[1] : 0;
-
-        return $pullOut;
+        return new GitPull(
+            isset($filesMatches[1]) ? $filesMatches[1] : [],
+            (strpos(strtolower($output), "already up to date") !== false),
+            isset($changeCountMatches[1]) ? (int) $changeCountMatches[1] : 0,
+            isset($insertionCountMatches[1]) ? (int) $insertionCountMatches[1] : 0,
+            isset($deletionCountMatches[1]) ? (int) $deletionCountMatches[1] : 0
+        );
     }
 }
