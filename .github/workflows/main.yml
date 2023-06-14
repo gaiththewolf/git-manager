@@ -13,18 +13,23 @@ jobs:
             fail-fast: true
             matrix:
                 os: [windows-latest]
-                php: [^8.0.2]
-                laravel: [9.*]
-                stability: [prefer-lowest, prefer-stable]
+                php: [8.0, 8.1, 8.2]
+                laravel: [9.*, 10.*]
+                stability: [prefer-stable]
+                exclude:
+                  - laravel: 10.*
+                    php: 8.0
                 include:
                     - laravel: 9.*
-                      testbench: ^8.5
+                      testbench: ^7.0
+                    - laravel: 10.*
+                      testbench: ^8.0
 
         name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@v2
+              uses: actions/checkout@v3
 
             - name: Setup PHP
               uses: shivammathur/setup-php@v2
