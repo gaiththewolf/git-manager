@@ -101,7 +101,7 @@ Illuminate\Support\Collection {#1512 ▼ // app\Http\Controllers\UpdaterControll
         "email" => "user1@mail.local"
       ]
       +date: "Tue Jun 13 14:30:35 2023 +0100"
-      +message: "Merge branch 'main' of github.com:gaiththewolf/amani_stats1"
+      +message: "Merge branch 'main' of github.com:gaiththewolf/projectXXX"
     }
     1 => Gaiththewolf\GitManager\Data\GitLog {#778 ▶
       +hash: "d0f6283eebb28d4f93c0bc9231d3e4d6e2720cd9"
