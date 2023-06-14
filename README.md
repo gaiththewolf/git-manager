@@ -104,7 +104,7 @@ Illuminate\Support\Collection {#1512 ▼ // app\Http\Controllers\UpdaterControll
       +message: "Merge branch 'main' of github.com:gaiththewolf/projectXXX"
     }
     1 => Gaiththewolf\GitManager\Data\GitLog {#778 ▶
-      +hash: "d0f6283eebb28d4f93c0bc9231d3e4d6e2720cd9"
+      +hash: "d0f6283eebb28d4fbc9231d3e4d6e2720cd9"
       +merge: []
       +author: array:2 [▶
         "full_name" => "User 1"
@@ -114,7 +114,7 @@ Illuminate\Support\Collection {#1512 ▼ // app\Http\Controllers\UpdaterControll
       +message: "fix"
     }
     2 => Gaiththewolf\GitManager\Data\GitLog {#1579 ▶
-      +hash: "5f23047507e4130b07929a429ca2a7adadcfd127"
+      +hash: "5f23047507e41a429ca2a7adadcfd127"
       +merge: []
       +author: array:2 [▶
         "full_name" => "User 2"
@@ -124,7 +124,7 @@ Illuminate\Support\Collection {#1512 ▼ // app\Http\Controllers\UpdaterControll
       +message: "Update README.md"
     }
     3 => Gaiththewolf\GitManager\Data\GitLog {#780 ▶
-      +hash: "5160f64d7ad2073c46da6922cde61bd965c2ad3a"
+      +hash: "5160f64d7ad207322cde61bd965c2ad3a"
       +merge: []
       +author: array:2 [▶
         "full_name" => "User 1"
