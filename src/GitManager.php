@@ -122,7 +122,7 @@ class GitManager
     {
         return self::$sshPassword;
     }
-    
+
     /**
      * run any command cmd - git or composer or artisan ...
      * @param array $args
@@ -173,7 +173,7 @@ class GitManager
 
         if (isPassworPrompt($output) || isPassworPrompt($errorOutput)) {
             // If password prompt is detected, provide the password to continue
-            if (empty($password) && empty(self::$sshPassword) {
+            if (empty($password) && empty(self::$sshPassword)) {
                 throw new GitPasswordException("SSH password needed !");
             }
             $pass = empty($password) ? self::$sshPassword : $password;
