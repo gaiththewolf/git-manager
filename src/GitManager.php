@@ -20,14 +20,16 @@ class GitManager
     protected static $bin;
     protected static $workingDirectory;
     protected static $composerHome;
+    protected static $sshPassword;
 
     private static $didInit = false;
 
     /** Set working directory and define git localtion
      * @param string $wd working directory - base_path()
      * @param ?string $ch composer home - base_path('vendor/bin/composer')
+     * @param ?string $password ssh password
      */
-    public static function init(?string $wd = null, ?string $ch = null) {
+    public static function init(?string $wd = null, ?string $ch = null, ?string $password = null) {
         if (!self::$didInit) {
             self::$didInit = true;
             if (file_exists('/usr/bin/git')) {
@@ -37,6 +39,7 @@ class GitManager
             }
             self::$workingDirectory = $wd ?? base_path();
             self::$composerHome = $ch;
+            self::$sshPassword = $password;
         }
     }
 
@@ -85,7 +88,7 @@ class GitManager
     }
 
     /**
-     * Set working path
+     * Set composer home path
      *
      * @param string $path to .git directory
      */
@@ -95,12 +98,31 @@ class GitManager
     }
 
     /**
-     * Gets working path
+     * Get composer home path
      */
     public static function getComposerHome()
     {
         return self::$composerHome;
     }
+
+    /**
+     * Set ssh password
+     *
+     * @param string $path to .git directory
+     */
+    public static function setSshPassword($value)
+    {
+        self::$sshPassword = $value;
+    }
+
+    /**
+     * Get ssh password
+     */
+    public static function getSshPassword()
+    {
+        return self::$sshPassword;
+    }
+    
     /**
      * run any command cmd - git or composer or artisan ...
      * @param array $args
@@ -135,7 +157,7 @@ class GitManager
      * @param array $args
      * @return mixed
      */
-    public static function cmd( ? string $password = null, ...$args) :  ? string
+    public static function cmd($password = null, ...$args) :  ? string
     {
         array_unshift($args, self::getBin());
         $cmd = new Process($args);
@@ -151,10 +173,11 @@ class GitManager
 
         if (isPassworPrompt($output) || isPassworPrompt($errorOutput)) {
             // If password prompt is detected, provide the password to continue
-            if (empty($password) || $password == null) {
+            if (empty($password) && empty(self::$sshPassword) {
                 throw new GitPasswordException("SSH password needed !");
             }
-            $cmd->setInput($password . "\n");
+            $pass = empty($password) ? self::$sshPassword : $password;
+            $cmd->setInput($pass . "\n");
             $cmd->run();
 
             if ($cmd->isSuccessful()) {
