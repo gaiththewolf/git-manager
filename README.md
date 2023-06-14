@@ -52,6 +52,7 @@ class UpdaterController extends Controller
         $lastUpdate = trim(GitManager::lastUpdate()); // get string of last update datetime
 
         $status = GitManager::status(); // get Object git status include command `git fetch` before
+        //$status = GitManager::status("ssh password");
 
         $logs = GitManager::log(); // get Object Last 10 logs
 
@@ -61,6 +62,7 @@ class UpdaterController extends Controller
     public function pull()
     {
         $output = GitManager::pull(); // get Object of pull changes if exist
+        //$output = GitManager::pull("ssh password");
         if ($output["is_up_to_date"]) {
             return redirect()->route('update.index');
         }
