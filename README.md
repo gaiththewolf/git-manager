@@ -40,10 +40,8 @@ class UpdaterController extends Controller
 
     public function __construct()
     {
-        // for windows users you need to set windows mode
-        GitManager::windowsMode();
-        // set .git directory
-        GitManager::setWorkingDirectory(base_path());
+        // init and set git working directory
+        GitManager::init(base_path());
     }
 
     public function index()

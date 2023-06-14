@@ -1,22 +1,21 @@
 <?php
 declare(strict_types=1);
- 
+
 namespace Gaiththewolf\GitManager\Tests;
 
 use Gaiththewolf\GitManager\GitManager;
 use Gaiththewolf\GitManager\GitManagerFacade;
 use Gaiththewolf\GitManager\GitManagerServiceProvider;
-use PHPUnit\Framework\TestCase;
+use Orchestra\Testbench\TestCase;
 
 class PackageTestCase extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        GitManager::windowsMode();
-        GitManager::setWorkingDirectory(__DIR__);
+        GitManager::init(__DIR__);
     }
-    
+
     protected function getPackageProviders($app): array
     {
         return [
@@ -41,6 +40,6 @@ class PackageTestCase extends TestCase
         $this->assertNotEmpty($gitVersion);
 
         $gitLogs = GitManager::log(2);
-        $this->assertIsArray($gitLogs);
+        $this->assertIsIterable($gitLogs);
     }
 }

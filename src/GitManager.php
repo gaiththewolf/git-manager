@@ -3,12 +3,11 @@
 namespace Gaiththewolf\GitManager;
 
 use Symfony\Component\Process\Process;
-use Exception;
-use Gaiththewolf\GitManager\Data\GitLog;
-use Gaiththewolf\GitManager\Data\GitPull;
 use Gaiththewolf\GitManager\Exceptions\ComposerRunException;
 use Gaiththewolf\GitManager\Exceptions\GitPasswordException;
 use Gaiththewolf\GitManager\Data\GitStatus;
+use Gaiththewolf\GitManager\Data\GitLog;
+use Gaiththewolf\GitManager\Data\GitPull;
 use Illuminate\Support\Collection;
 
 class GitManager
@@ -22,19 +21,23 @@ class GitManager
     protected static $workingDirectory;
     protected static $composerHome;
 
+    private static $didInit = false;
+
     /** Set working directory and define git localtion
      * @param string $wd working directory - base_path()
      * @param ?string $ch composer home - base_path('vendor/bin/composer')
      */
-    public function __construct(?string $wd = null, ?string $ch = null)
-    {
-        if (file_exists('/usr/bin/git')) {
-            self::$bin = '/usr/bin/git';
-        } else {
-            self::$bin = 'git';
+    public static function init(?string $wd = null, ?string $ch = null) {
+        if (!self::$didInit) {
+            self::$didInit = true;
+            if (file_exists('/usr/bin/git')) {
+                self::$bin = '/usr/bin/git';
+            } else {
+                self::$bin = 'git';
+            }
+            self::$workingDirectory = $wd ?? base_path();
+            self::$composerHome = $ch;
         }
-        self::$workingDirectory = $wd ?? base_path();
-        self::$composerHome = $ch;
     }
 
     /**
