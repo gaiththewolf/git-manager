@@ -157,7 +157,7 @@ class GitManager
      * @param array $args
      * @return mixed
      */
-    public static function cmd($password = null, ...$args) :  ? string
+    public static function cmd( ? string $password = null, ...$args) : ? string
     {
         array_unshift($args, self::getBin());
         $cmd = new Process($args);
